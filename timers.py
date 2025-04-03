@@ -24,15 +24,8 @@ class TimerApp(NSObject):
             "2 hr": 7200
         }
         
-        self.active_timers = []  # Danh sách các timer đang chạy
-        self.is_paused = False  # Trạng thái tạm dừng
-        
-        # Thêm nút Pause/Play
-        self.pause_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-            "Pause", b"togglePause:", ""
-        )
-        self.menu.addItem_(self.pause_item)
-        self.menu.addItem_(NSMenuItem.separatorItem())
+        self.active_timers = []  # Danh sách timer: (duration, menu_item, is_paused)
+        self.timer_items = []  # Danh sách các mục menu cho timer
         
         # Thêm các mục timer
         for label, seconds in self.timers.items():
@@ -58,7 +51,6 @@ class TimerApp(NSObject):
         
         self.status_item.setMenu_(self.menu)
         
-        # Khởi tạo timer với NSRunLoopCommonModes
         self.update_timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
             1.0, self, b"updateCountdown:", None, True
         )
@@ -68,21 +60,22 @@ class TimerApp(NSObject):
     
     def startTimer_(self, sender):
         duration = sender.representedObject()
-        self.active_timers.append((duration, sender))
-        self.active_timers.sort()
-        self.updateMenuTitle()
+        self.active_timers.append((duration, sender, False))  # Thêm timer với is_paused = False
+        self.updateMenuWithTimers()
     
     def updateCountdown_(self, sender):
-        if self.active_timers and not self.is_paused:
+        if self.active_timers:
             updated_timers = []
-            for duration, menu_item in self.active_timers:
-                duration -= 1
+            for duration, menu_item, is_paused in self.active_timers:
+                if not is_paused:
+                    duration -= 1
                 if duration > 0:
-                    updated_timers.append((duration, menu_item))
+                    updated_timers.append((duration, menu_item, is_paused))
                 else:
                     self.playSoundRepeatedly()
             self.active_timers = updated_timers
-            self.updateMenuTitle()
+            self.updateMenuWithTimers()
+        self.updateMenuTitle()
     
     def updateMenuTitle(self):
         if self.active_timers:
@@ -92,6 +85,31 @@ class TimerApp(NSObject):
             self.status_item.setTitle_(f"⏳ {minutes}:{seconds:02d}")
         else:
             self.status_item.setTitle_("⏳")
+    
+    def updateMenuWithTimers(self):
+        # Xóa các mục timer cũ
+        for item in self.timer_items:
+            self.menu.removeItem_(item)
+        self.timer_items = []
+        
+        # Thêm các mục timer mới
+        for i, (duration, _, is_paused) in enumerate(self.active_timers):
+            minutes = duration // 60
+            seconds = duration % 60
+            timer_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+                f"Timer {i+1}: {minutes}:{seconds:02d} [{'Pause' if not is_paused else 'Play'}]",
+                b"toggleTimerPause:",
+                ""
+            )
+            timer_item.setRepresentedObject_(i)  # Lưu chỉ số để xác định timer
+            self.menu.insertItem_atIndex_(timer_item, i)  # Thêm ở đầu menu
+            self.timer_items.append(timer_item)
+    
+    def toggleTimerPause_(self, sender):
+        index = sender.representedObject()
+        duration, menu_item, is_paused = self.active_timers[index]
+        self.active_timers[index] = (duration, menu_item, not is_paused)
+        self.updateMenuWithTimers()
     
     def playSoundRepeatedly(self):
         self.sound_count = 0
@@ -108,11 +126,6 @@ class TimerApp(NSObject):
         else:
             self.sound_timer.invalidate()
             self.sound_timer = None
-    
-    def togglePause_(self, sender):
-        if self.active_timers:
-            self.is_paused = not self.is_paused
-            sender.setTitle_("Play" if self.is_paused else "Pause")
     
     def showCustomTimerDialog_(self, sender):
         NSApp.activateIgnoringOtherApps_(True)
@@ -143,9 +156,8 @@ class TimerApp(NSObject):
                 minutes = int(minute_field.stringValue()) if minute_field.stringValue() else 0
                 total_seconds = (hours * 3600) + (minutes * 60)
                 if total_seconds > 0:
-                    self.active_timers.append((total_seconds, None))
-                    self.active_timers.sort()
-                    self.updateMenuTitle()
+                    self.active_timers.append((total_seconds, None, False))
+                    self.updateMenuWithTimers()
             except ValueError:
                 pass
 
