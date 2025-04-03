@@ -25,7 +25,6 @@ class TimerApp(NSObject):
         }
         
         self.active_timers = []  # Danh sách các timer đang chạy
-        self.custom_timers = []  # Danh sách các timer được tạo thủ công
         
         for label, seconds in self.timers.items():
             menu_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
@@ -35,8 +34,6 @@ class TimerApp(NSObject):
             self.menu.addItem_(menu_item)
         
         self.menu.addItem_(NSMenuItem.separatorItem())
-        self.custom_timer_separator = NSMenuItem.separatorItem()
-        self.menu.addItem_(self.custom_timer_separator)
         
         self.custom_timer_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
             "+", b"showCustomTimerDialog:", ""
@@ -51,9 +48,10 @@ class TimerApp(NSObject):
         self.menu.addItem_(self.quit_item)
         
         self.status_item.setMenu_(self.menu)
+        
         self.update_timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
             1.0, self, b"updateCountdown:", None, True
-        )
+        )        
     
     def startTimer_(self, sender):
         duration = sender.representedObject()
@@ -63,19 +61,22 @@ class TimerApp(NSObject):
     
     def updateCountdown_(self, sender):
         if self.active_timers:
-            self.active_timers[0] = (self.active_timers[0][0] - 1, self.active_timers[0][1])
-            if self.active_timers[0][0] <= 0:
-                self.playSoundRepeatedly()
-                finished_timer = self.active_timers.pop(0)
-                if finished_timer[1] in self.custom_timers:
-                    self.menu.removeItem_(finished_timer[1])
-                    self.custom_timers.remove(finished_timer[1])
+            updated_timers = []
+            for duration, menu_item in self.active_timers:
+                duration -= 1
+                if duration > 0:
+                    updated_timers.append((duration, menu_item))
+                else:
+                    self.playSoundRepeatedly()
+            self.active_timers = updated_timers
             self.updateMenuTitle()
-    
+
     def updateMenuTitle(self):
         if self.active_timers:
-            minutes = self.active_timers[0][0] // 60
-            seconds = self.active_timers[0][0] % 60
+            # Hiển thị thời gian của timer sớm nhất
+            min_duration = min(t[0] for t in self.active_timers)
+            minutes = min_duration // 60
+            seconds = min_duration % 60
             self.status_item.setTitle_(f"⏳ {minutes}:{seconds:02d}")
         else:
             self.status_item.setTitle_("⏳")
@@ -125,13 +126,9 @@ class TimerApp(NSObject):
                 minutes = int(minute_field.stringValue()) if minute_field.stringValue() else 0
                 total_seconds = (hours * 3600) + (minutes * 60)
                 if total_seconds > 0:
-                    custom_timer = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-                        f"Custom: {hours}h {minutes}m", b"startTimer:", ""
-                    )
-                    custom_timer.setRepresentedObject_(total_seconds)
-                    self.menu.insertItem_aboveItem_(custom_timer, self.custom_timer_separator)
-                    self.custom_timers.append(custom_timer)
-                    self.startTimer_(custom_timer)
+                    self.active_timers.append((total_seconds, None))
+                    self.active_timers.sort()
+                    self.updateMenuTitle()
             except ValueError:
                 pass
     
