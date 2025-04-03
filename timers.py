@@ -1,5 +1,5 @@
 from PyObjCTools import AppHelper
-from Foundation import NSObject, NSTimer, NSRunLoop
+from Foundation import NSObject, NSTimer, NSRunLoop, NSRunLoopCommonModes
 from AppKit import NSApplication, NSApp, NSStatusBar, NSMenu, NSMenuItem, NSSound, NSAlert, NSTextField, NSView
 
 class TimerApp(NSObject):
@@ -58,12 +58,12 @@ class TimerApp(NSObject):
         
         self.status_item.setMenu_(self.menu)
         
-        # Khởi tạo timer với NSRunLoop
+        # Khởi tạo timer với NSRunLoopCommonModes
         self.update_timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
             1.0, self, b"updateCountdown:", None, True
         )
         NSRunLoop.currentRunLoop().addTimer_forMode_(
-            self.update_timer, "NSRunLoopCommonModes"
+            self.update_timer, NSRunLoopCommonModes
         )
     
     def startTimer_(self, sender):
