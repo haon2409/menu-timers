@@ -1,6 +1,6 @@
 from PyObjCTools import AppHelper
-from Foundation import NSObject, NSTimer, NSRunLoop, NSRunLoopCommonModes
-from AppKit import NSApplication, NSApp, NSStatusBar, NSMenu, NSMenuItem, NSSound, NSAlert, NSTextField, NSView
+from Foundation import NSObject, NSTimer, NSRunLoop, NSRunLoopCommonModes, NSMakeSize, NSColor
+from AppKit import NSApplication, NSApp, NSStatusBar, NSMenu, NSMenuItem, NSSound, NSAlert, NSTextField, NSView, NSImage, NSAttributedString, NSDictionary, NSFont
 import os
 
 class TimerApp(NSObject):
@@ -8,8 +8,16 @@ class TimerApp(NSObject):
         NSApp.setActivationPolicy_(1)  # Ẩn icon trên Dock
         
         self.status_bar = NSStatusBar.systemStatusBar()
-        self.status_item = self.status_bar.statusItemWithLength_(65)  # Cố định độ dài 120 pixel
-        self.status_item.setTitle_("⏳")
+        self.status_item = self.status_bar.statusItemWithLength_(65)  # Cố định độ dài 65 pixel
+        
+        # Tải icon từ file icon64.png
+        icon_path = os.path.join(os.path.dirname(__file__), "icon64.png")
+        self.icon = NSImage.alloc().initWithContentsOfFile_(icon_path)
+        if self.icon:
+            self.icon.setSize_((22, 22))  # Điều chỉnh kích thước icon
+            self.status_item.setImage_(self.icon)
+        else:
+            self.status_item.setTitle_("⏳")  # Dự phòng nếu không tải được icon
         
         self.menu = NSMenu.alloc().init()
         
@@ -60,6 +68,48 @@ class TimerApp(NSObject):
             self.update_timer, NSRunLoopCommonModes
         )
     
+    def create_colored_text_image(self, text):
+        # Tạo attributed string với màu #FCC419
+        attributes = NSDictionary.dictionaryWithObjects_forKeys_(
+            [
+                NSFont.fontWithName_size_("Menlo", 14),  # Font chữ và kích thước
+                NSColor.colorWithCalibratedRed_green_blue_alpha_(252/255.0, 196/255.0, 25/255.0, 1.0)  # Màu #FCC419
+            ],
+            ["NSFont", "NSForegroundColor"]
+        )
+        attr_string = NSAttributedString.alloc().initWithString_attributes_(text, attributes)
+        
+        # Tính kích thước của văn bản
+        text_size = attr_string.size()
+        
+        # Tạo hình ảnh với kích thước phù hợp
+        image = NSImage.alloc().initWithSize_(NSMakeSize(text_size.width, text_size.height))
+        image.lockFocus()
+        attr_string.drawAtPoint_((0, 0))
+        image.unlockFocus()
+        
+        return image
+    
+    def updateMenuTitle(self):
+        if self.active_timers:
+            # Khi có timer, hiển thị thời gian với màu #FCC419
+            min_duration = min(t[0] for t in self.active_timers)
+            minutes = min_duration // 60
+            seconds = min_duration % 60
+            time_text = f"{minutes:02d}:{seconds:02d}"
+            
+            # Tạo hình ảnh với văn bản màu #FCC419
+            time_image = self.create_colored_text_image(time_text)
+            self.status_item.setImage_(time_image)
+            self.status_item.setTitle_("")  # Xóa title để chỉ hiển thị hình ảnh
+        else:
+            # Khi không có timer, hiển thị icon
+            if self.icon:
+                self.status_item.setImage_(self.icon)
+            else:
+                self.status_item.setTitle_("⏳")
+            self.status_item.setTitle_("")
+    
     def startTimer_(self, sender):
         duration = sender.representedObject()
         self.active_timers.append((duration, sender, False))
@@ -77,30 +127,18 @@ class TimerApp(NSObject):
                     self.playSound_(None)
             self.active_timers = updated_timers
             self.updateMenuWithTimers()
-            self.updateMenuTitle()  # Đảm bảo cập nhật thanh menu
-    
-    def updateMenuTitle(self):
-        if self.active_timers:
-            min_duration = min(t[0] for t in self.active_timers)
-            minutes = min_duration // 60
-            seconds = min_duration % 60
-            self.status_item.setTitle_(f"⏳ {minutes:02d}:{seconds:02d}")  # Thêm padding số 0
-        else:
-            self.status_item.setTitle_("⏳")
+            self.updateMenuTitle()
     
     def updateMenuWithTimers(self):
-        # Xóa các mục timer cũ
         for item in self.timer_items:
             self.menu.removeItem_(item)
         if self.menu.itemArray().containsObject_(self.timer_separator):
             self.menu.removeItem_(self.timer_separator)
         self.timer_items = []
         
-        # Thêm các mục timer mới
         for i, (duration, _, is_paused) in enumerate(self.active_timers):
             minutes = duration // 60
             seconds = duration % 60
-            # Mục Pause/Play
             pause_play_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
                 f"Timer {i+1}: {minutes:02d}:{seconds:02d} [{'Pause' if not is_paused else 'Play'}]",
                 b"toggleTimerPause:",
@@ -110,7 +148,6 @@ class TimerApp(NSObject):
             self.menu.insertItem_atIndex_(pause_play_item, i * 2)
             self.timer_items.append(pause_play_item)
             
-            # Mục Cancel
             cancel_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
                 f"Cancel Timer {i+1}",
                 b"toggleTimerCancel:",
@@ -120,7 +157,6 @@ class TimerApp(NSObject):
             self.menu.insertItem_atIndex_(cancel_item, i * 2 + 1)
             self.timer_items.append(cancel_item)
         
-        # Thêm gạch ngang sau các timer
         if self.active_timers:
             self.menu.insertItem_atIndex_(self.timer_separator, len(self.active_timers) * 2)
     
@@ -134,7 +170,7 @@ class TimerApp(NSObject):
         index = sender.representedObject()
         del self.active_timers[index]
         self.updateMenuWithTimers()
-        self.updateMenuTitle()  # Cập nhật lại thanh menu khi hủy
+        self.updateMenuTitle()
     
     def playSound_(self, sender):
         sound_path = os.path.join(os.path.dirname(__file__), "alert.mp3")
