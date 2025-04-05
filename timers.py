@@ -72,10 +72,12 @@ class TimerApp(NSObject):
         # Tạo attributed string với màu #FCC419
         attributes = NSDictionary.dictionaryWithObjects_forKeys_(
             [
-                NSFont.fontWithName_size_("Menlo", 14),  # Font chữ và kích thước
-                NSColor.colorWithCalibratedRed_green_blue_alpha_(252/255.0, 196/255.0, 25/255.0, 1.0)  # Màu #FCC419
+                NSFont.fontWithName_size_("DSEG7Classic-Regular", 16),  # Tên font chính xác
+                NSColor.colorWithCalibratedRed_green_blue_alpha_(252/255.0, 196/255.0, 25/255.0, 1.0),
+                NSColor.blackColor(),
+                1.0
             ],
-            ["NSFont", "NSForegroundColor"]
+            ["NSFont", "NSForegroundColor", "NSStrokeColor", "NSStrokeWidth"]
         )
         attr_string = NSAttributedString.alloc().initWithString_attributes_(text, attributes)
         
