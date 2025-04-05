@@ -8,7 +8,7 @@ class TimerApp(NSObject):
         NSApp.setActivationPolicy_(1)  # Ẩn icon trên Dock
         
         self.status_bar = NSStatusBar.systemStatusBar()
-        self.status_item = self.status_bar.statusItemWithLength_(65)  # Cố định độ dài 65 pixel
+        self.status_item = self.status_bar.statusItemWithLength_(55)  # Cố định độ dài 65 pixel
         
         # Tải icon từ file icon64.png
         icon_path = os.path.join(os.path.dirname(__file__), "icon64.png")
@@ -21,16 +21,16 @@ class TimerApp(NSObject):
         
         self.menu = NSMenu.alloc().init()
         
-        self.timers = {
-            "3 sec (Test)": 3,
+        self.timers = {            
             "1 min": 60,
             "3 min": 180,
             "5 min": 300,
             "10 min": 600,
             "15 min": 900,
+            "20 min": 1200,
             "30 min": 1800,
-            "1 hr": 3600,
-            "2 hr": 7200
+            "45 min": 2700,
+            "1 hr": 3600            
         }
         
         self.active_timers = []  # Danh sách timer: (duration, menu_item, is_paused)
