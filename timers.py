@@ -1,14 +1,14 @@
 from PyObjCTools import AppHelper
 from Foundation import NSObject, NSTimer, NSRunLoop, NSRunLoopCommonModes, NSMakeSize, NSColor
-from AppKit import NSApplication, NSApp, NSStatusBar, NSMenu, NSMenuItem, NSSound, NSAlert, NSTextField, NSView, NSImage, NSAttributedString, NSDictionary, NSFont
+from AppKit import NSApplication, NSApp, NSStatusBar, NSMenu, NSMenuItem, NSSound, NSAlert, NSTextField, NSView, NSImage, NSAttributedString, NSDictionary, NSFont, NSVariableStatusItemLength
 import os
 
 class TimerApp(NSObject):
     def applicationDidFinishLaunching_(self, notification):
         NSApp.setActivationPolicy_(1)  # Ẩn icon trên Dock
         
-        self.status_bar = NSStatusBar.systemStatusBar()
-        self.status_item = self.status_bar.statusItemWithLength_(55)  # Cố định độ dài 65 pixel
+        self.status_bar = NSStatusBar.systemStatusBar()        
+        self.status_item = self.status_bar.statusItemWithLength_(NSVariableStatusItemLength)
         
         # Tải icon từ file icon64.png
         icon_path = os.path.join(os.path.dirname(__file__), "icon64.png")
