@@ -69,13 +69,13 @@ class TimerApp(NSObject):
         )
     
     def create_colored_text_image(self, text):
-        # Tạo attributed string với màu #FCC419
+        # Tạo attributed string với màu đen đặc
         attributes = NSDictionary.dictionaryWithObjects_forKeys_(
             [
-                NSFont.fontWithName_size_("DSEG7Classic-Regular", 16),  # Tên font chính xác
-                NSColor.colorWithCalibratedRed_green_blue_alpha_(252/255.0, 196/255.0, 25/255.0, 1.0),
-                NSColor.blackColor(),
-                1.0
+                NSFont.fontWithName_size_("DSEG7Classic-Regular", 16),  # Tăng kích thước font lên 18
+                NSColor.blackColor(),  # Màu chính là đen
+                NSColor.blackColor(),  # Màu viền cũng là đen
+                -3  # Giá trị âm để stroke đi vào trong (làm đặc chữ)
             ],
             ["NSFont", "NSForegroundColor", "NSStrokeColor", "NSStrokeWidth"]
         )
@@ -84,10 +84,10 @@ class TimerApp(NSObject):
         # Tính kích thước của văn bản
         text_size = attr_string.size()
         
-        # Tạo hình ảnh với kích thước phù hợp
-        image = NSImage.alloc().initWithSize_(NSMakeSize(text_size.width, text_size.height))
+        # Tạo hình ảnh với kích thước phù hợp (thêm padding 2px mỗi bên)
+        image = NSImage.alloc().initWithSize_(NSMakeSize(text_size.width + 4, text_size.height + 4))
         image.lockFocus()
-        attr_string.drawAtPoint_((0, 0))
+        attr_string.drawAtPoint_((2, 2))  # Vẽ text với offset 2px để có padding
         image.unlockFocus()
         
         return image
