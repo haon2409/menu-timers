@@ -72,10 +72,11 @@ class TimerApp(NSObject):
         # Tạo attributed string với màu đen đặc
         attributes = NSDictionary.dictionaryWithObjects_forKeys_(
             [
-                NSFont.fontWithName_size_("DSEG7Classic-Regular", 16),  # Tăng kích thước font lên 18
-                NSColor.blackColor(),  # Màu chính là đen
-                NSColor.blackColor(),  # Màu viền cũng là đen
-                -3  # Giá trị âm để stroke đi vào trong (làm đặc chữ)
+                # NSFont.fontWithName_size_("DSEG7Classic-Regular", 16),
+                NSFont.fontWithName_size_("Helvetica", 16),
+                NSColor.colorWithCalibratedRed_green_blue_alpha_(0.988, 0.769, 0.098, 1.0),
+                NSColor.colorWithCalibratedRed_green_blue_alpha_(0.988, 0.769, 0.098, 1.0),
+                -6  # Giá trị âm để stroke đi vào trong (làm đặc chữ)
             ],
             ["NSFont", "NSForegroundColor", "NSStrokeColor", "NSStrokeWidth"]
         )
@@ -129,8 +130,8 @@ class TimerApp(NSObject):
                     self.playSound_(None)
             self.active_timers = updated_timers
             self.updateMenuWithTimers()
-            self.updateMenuTitle()
-    
+            self.updateMenuTitle()        
+
     def updateMenuWithTimers(self):
         for item in self.timer_items:
             self.menu.removeItem_(item)
@@ -141,8 +142,9 @@ class TimerApp(NSObject):
         for i, (duration, _, is_paused) in enumerate(self.active_timers):
             minutes = duration // 60
             seconds = duration % 60
+            label = next(k for k, v in self.timers.items() if v >= duration) if i == 0 else f"Timer {i+1}"
             pause_play_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-                f"Timer {i+1}: {minutes:02d}:{seconds:02d} [{'Pause' if not is_paused else 'Play'}]",
+                f"{label}: {minutes:02d}:{seconds:02d} {'⏸️' if not is_paused else '▶️'}",
                 b"toggleTimerPause:",
                 ""
             )
@@ -151,7 +153,7 @@ class TimerApp(NSObject):
             self.timer_items.append(pause_play_item)
             
             cancel_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-                f"Cancel Timer {i+1}",
+                "❌",
                 b"toggleTimerCancel:",
                 ""
             )
@@ -161,7 +163,7 @@ class TimerApp(NSObject):
         
         if self.active_timers:
             self.menu.insertItem_atIndex_(self.timer_separator, len(self.active_timers) * 2)
-    
+
     def toggleTimerPause_(self, sender):
         index = sender.representedObject()
         duration, menu_item, is_paused = self.active_timers[index]
@@ -177,8 +179,8 @@ class TimerApp(NSObject):
     def playSound_(self, sender):
         sound_path = os.path.join(os.path.dirname(__file__), "alert.mp3")
         sound = NSSound.alloc().initWithContentsOfFile_byReference_(sound_path, True)
-        if sound:
-            sound.play()
+        if sound:            
+            sound.play()          
 
     def showCustomTimerDialog_(self, sender):
         NSApp.activateIgnoringOtherApps_(True)
