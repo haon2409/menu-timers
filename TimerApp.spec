@@ -5,7 +5,7 @@ a = Analysis(
     ['timers.py'],
     pathex=[],
     binaries=[],
-    datas=[('alert.mp3', '.'), ('icon64.png', '.')],
+    datas=[('alert.mp3', '.'), ('icon64.png', '.'), ('Info.plist', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
