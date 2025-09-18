@@ -13,7 +13,7 @@ Icon Fallback: Uses a timer emoji (⏳) if icon64.png fails to load.
 
 Requirements
 
-macOS
+macOS 10.15+
 Python 3.x
 PyObjC (pip install pyobjc)
 PyInstaller (pip install pyinstaller)
@@ -27,11 +27,11 @@ cd menu-timers
 Install dependencies:pip install pyobjc pyinstaller
 
 
-Build the app:chmod +x build_timers.sh
+Build the standalone app:chmod +x build_timers.sh
 ./build_timers.sh
 
 
-Find the built app (TimerApp.app) in the dist folder.
+Find the built app (TimerApp.app) in the project root.
 
 File Structure
 
@@ -44,7 +44,7 @@ icon64.png: Menu bar icon.
 
 Usage
 
-Open dist/TimerApp.app or build the app using the script.
+Run TimerApp.app from the project root or copy it to /Applications/ and double-click.
 Click the menu bar icon to access the timer menu.
 Select a predefined timer (e.g., "5 min") or choose "+" to set a custom timer.
 Active timers display in the menu with pause/resume (⏸️/▶️) and cancel (❌) options.
@@ -55,12 +55,13 @@ Notes
 
 The app uses a hardcoded path for alert.mp3 and icon64.png relative to the script's location.
 To enable the commented-out DSEG7Classic-Regular font in timers.py, ensure it is installed on the system.
+The standalone app requires no Python or dependencies; simply copy to /Applications/.
 
 Troubleshooting
 
 Icon not displaying: Verify icon64.png is in the project directory.
 Sound not playing: Ensure alert.mp3 is present and accessible.
-Build issues: Confirm PyObjC and PyInstaller are installed correctly.
+Build issues: Confirm PyObjC and PyInstaller are installed; check terminal output for errors.
 Custom timer dialog errors: Input valid numbers for hours and minutes.
 
 License
