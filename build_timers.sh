@@ -68,22 +68,15 @@ $PYINSTALLER_PATH --noconfirm --onedir --windowed \
   --icon=icon64.png \
   --add-data "alert.mp3:." \
   --add-data "icon64.png:." \
-  --add-data "Info.plist:." \
   --name TimerApp \
   --osx-bundle-identifier com.yourcompany.timerapp \
+  --target-arch universal2 \
   timers.py
 
 # Copy Info.plist to bundle
 print_status "Copying Info.plist to bundle..."
 cp Info.plist dist/TimerApp.app/Contents/Info.plist
 print_success "Info.plist copied"
-
-if [ $? -eq 0 ]; then
-    print_success "Build successful!"
-else
-    print_error "Build failed"
-    exit 1
-fi
 
 # Check if app was created
 if [ -d "dist/TimerApp.app" ]; then
@@ -108,14 +101,19 @@ if [ -d "dist/TimerApp.app" ]; then
     echo ""
     echo "🚀 Usage:"
     echo "   • Copy TimerApp.app to /Applications/"
-    echo "   • Double-click to run"
-    echo "   • Or: open TimerApp.app"
+    echo "   • Right-click > Open to bypass Gatekeeper"
+    echo "   • Or: open TimerApp.app from Terminal"
+    echo ""
+    echo "⚠ Warning:"
+    echo "   • App not codesigned/notarized, may be blocked by Gatekeeper"
+    echo "   • On other Macs, use: open /Applications/TimerApp.app"
+    echo "   • Or allow app in System Settings > Privacy & Security"
     echo ""
     echo "✨ Standalone features:"
     echo "   • No Python installation needed"
     echo "   • No dependencies required"
     echo "   • Runs on macOS 10.15+"
-    echo "   • Just copy to Applications"
+    echo "   • Universal binary (Intel & Apple Silicon)"
 else
     print_error "Standalone app not created"
     exit 1

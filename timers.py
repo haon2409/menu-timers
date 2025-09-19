@@ -1,7 +1,14 @@
+import sys
+import os
 from PyObjCTools import AppHelper
 from Foundation import NSObject, NSTimer, NSRunLoop, NSRunLoopCommonModes, NSMakeSize, NSColor
 from AppKit import NSApplication, NSApp, NSStatusBar, NSMenu, NSMenuItem, NSSound, NSAlert, NSTextField, NSView, NSImage, NSAttributedString, NSDictionary, NSFont, NSVariableStatusItemLength
-import os
+
+def resource_path(relative_path):
+    """Get absolute path to resource, works for dev and for PyInstaller"""
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
 
 class TimerApp(NSObject):
     def applicationDidFinishLaunching_(self, notification):
@@ -11,7 +18,7 @@ class TimerApp(NSObject):
         self.status_item = self.status_bar.statusItemWithLength_(NSVariableStatusItemLength)
         
         # Tải icon từ file icon64.png
-        icon_path = os.path.join(os.path.dirname(__file__), "icon64.png")
+        icon_path = resource_path("icon64.png")
         self.icon = NSImage.alloc().initWithContentsOfFile_(icon_path)
         if self.icon:
             self.icon.setSize_((22, 22))  # Điều chỉnh kích thước icon
@@ -72,8 +79,7 @@ class TimerApp(NSObject):
         # Tạo attributed string với màu đen đặc
         attributes = NSDictionary.dictionaryWithObjects_forKeys_(
             [
-                # NSFont.fontWithName_size_("DSEG7Classic-Regular", 16),
-                NSFont.fontWithName_size_("Helvetica", 16),
+                NSFont.fontWithName_size_("Helvetica", 16),  # DSEG7Classic-Regular có thể không có trên máy đích
                 NSColor.colorWithCalibratedRed_green_blue_alpha_(0.988, 0.769, 0.098, 1.0),
                 NSColor.colorWithCalibratedRed_green_blue_alpha_(0.988, 0.769, 0.098, 1.0),
                 -6  # Giá trị âm để stroke đi vào trong (làm đặc chữ)
@@ -177,7 +183,7 @@ class TimerApp(NSObject):
         self.updateMenuTitle()
     
     def playSound_(self, sender):
-        sound_path = os.path.join(os.path.dirname(__file__), "alert.mp3")
+        sound_path = resource_path("alert.mp3")
         sound = NSSound.alloc().initWithContentsOfFile_byReference_(sound_path, True)
         if sound:            
             sound.play()          
